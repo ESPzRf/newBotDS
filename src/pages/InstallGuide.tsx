@@ -237,10 +237,19 @@ MOD_ROLE_ID=0`} lang="env" />
 source venv/bin/activate
 python main.py`} />
           <p className="text-sm text-text-secondary">При успешном запуске увидите:</p>
-          <CodeBlock id="output" code={`INFO - База данных подключена
-INFO - Бот инициализирован и готов к работе
-INFO - Бот подключён как ModerationBot#1234
-INFO - Подключён к 1 серверам`} lang="log" />
+          <CodeBlock id="output" code={`🤖 Discord Moderation Bot
+🗄️ База данных инициализирована
+🌐 Flask API запущен на порту 5000
+🚀 Запуск Discord бота...
+✅ Бот подключён как ModerationBot#1234
+📡 Подключён к 1 серверам`} lang="log" />
+          <div className="bg-info/10 border border-info/20 rounded-lg p-3">
+            <p className="text-sm text-info">💡 Теперь доступны два интерфейса:</p>
+            <ul className="text-xs text-text-secondary mt-1 space-y-1 list-disc list-inside">
+              <li><strong>Discord</strong> — slash-команды: /timeout, /kick, /ban</li>
+              <li><strong>Веб-панель</strong> — <code className="bg-bg-secondary px-1 rounded">http://your_server:5000</code></li>
+            </ul>
+          </div>
           <p className="text-sm text-text-secondary">Остановить: <code className="bg-bg-secondary px-1 rounded">Ctrl+C</code></p>
         </div>
       ),
@@ -254,7 +263,7 @@ INFO - Подключён к 1 серверам`} lang="log" />
           <CodeBlock id="systemd-create" code={`sudo nano /etc/systemd/system/discord-bot.service`} />
           <p className="text-sm text-text-secondary">Вставьте содержимое:</p>
           <CodeBlock id="systemd-content" code={`[Unit]
-Description=Discord Moderation Bot
+Description=Discord Moderation Bot + Flask API
 After=network.target
 
 [Service]
@@ -267,6 +276,9 @@ RestartSec=10
 StandardOutput=journal
 StandardError=journal
 Environment=PYTHONUNBUFFERED=1
+# Переменные окружения (или используйте .env файл)
+Environment=DISCORD_BOT_TOKEN=your_token
+Environment=WEB_PORT=5000
 
 [Install]
 WantedBy=multi-user.target`} lang="ini" />

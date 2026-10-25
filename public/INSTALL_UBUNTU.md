@@ -13,9 +13,9 @@
 5. [Установка зависимостей](#5-установка-зависимостей)
 6. [Создание Discord бота](#6-создание-discord-бота)
 7. [Настройка конфигурации](#7-настройка-конфигурации)
-8. [Первый запуск](#8-первый-запуск)
-9. [Настройка автозапуска (systemd)](#9-настройка-автозапуска-systemd)
-10. [Настройка веб-панели](#10-настройка-веб-панели)
+8. [Сборка веб-панели](#8-сборка-веб-панели)
+9. [Первый запуск](#9-первый-запуск)
+10. [Настройка автозапуска (systemd)](#10-настройка-автозапуска-systemd)
 11. [Настройка Nginx (опционально)](#11-настройка-nginx-опционально)
 12. [Обновление бота](#12-обновление-бота)
 13. [Решение проблем](#13-решение-проблем)
@@ -269,7 +269,24 @@ mkdir -p data
 
 ---
 
-## 8. Первый запуск
+## 8. Сборка веб-панели
+
+```bash
+# Переходим в корень проекта
+cd /opt/discord-bot
+
+# Устанавливаем Node.js (если не установлен)
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
+
+# Устанавливаем зависимости и собираем
+npm install
+npm run build
+```
+
+После сборки файлы будут в `dist/`. Flask API автоматически раздаёт их.
+
+## 9. Первый запуск
 
 ```bash
 # Переходим в папку бота
@@ -278,31 +295,36 @@ cd /opt/discord-bot/bot
 # Активируем виртуальное окружение
 source venv/bin/activate
 
-# Запускаем бота
+# Запускаем бота (Discord + Flask API одновременно)
 python main.py
 ```
 
 При успешном запуске вы увидите:
 
 ```
-2026-01-15 14:00:00 - moderation_bot - INFO - База данных подключена
-2026-01-15 14:00:01 - moderation_bot - INFO - Бот инициализирован и готов к работе
-2026-01-15 14:00:01 - moderation_bot - INFO - Бот подключён как ModerationBot#1234 (ID: 123456789)
-2026-01-15 14:00:01 - moderation_bot - INFO - Подключён к 1 серверам
+🤖 Discord Moderation Bot
+🗄️ База данных инициализирована
+🌐 Flask API запущен на порту 5000
+🚀 Запуск Discord бота...
+✅ Бот подключён как ModerationBot#1234
+📡 Подключён к 1 серверам
 ```
 
 ### Проверка работы
 
-В Discord отправьте:
+**В Discord** — slash-команды:
 - `/timeout @user 1h Спам` — выдаст таймаут на 1 час
 - `/kick @user Нарушение правил` — кикнет пользователя
 - `/ban @user Рейд` — забанит пользователя
+
+**Веб-панель** — откройте в браузере:
+- `http://your_server_ip:5000` — панель управления
 
 Остановить бота: `Ctrl+C`
 
 ---
 
-## 9. Настройка автозапуска (systemd)
+## 10. Настройка автозапуска (systemd)
 
 Чтобы бот запускался автоматически при перезагрузке сервера:
 
@@ -371,48 +393,9 @@ sudo journalctl -u discord-bot -n 50
 
 ---
 
-## 10. Настройка веб-панели
-
-### Шаг 10.1: Сборка React приложения
-
-```bash
-# Переходим в корень проекта
-cd /opt/discord-bot
-
-# Устанавливаем Node.js (если не установлен)
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt install -y nodejs
-
-# Проверяем
-node --version
-npm --version
-
-# Устанавливаем зависимости
-npm install
-
-# Собираем проект
-npm run build
-```
-
-После сборки файлы будут в папке `dist/`.
-
-### Шаг 10.2: Простой HTTP сервер (для тестирования)
-
-```bash
-# Устанавливаем serve
-sudo npm install -g serve
-
-# Запускаем на порту 3000
-serve -s dist -l 3000
-```
-
-Веб-панель будет доступна по адресу: `http://your_server_ip:3000`
-
----
-
 ## 11. Настройка Nginx (опционально)
 
-Для продакшена рекомендуется использовать Nginx:
+Для продакшена рекомендуется использовать Nginx как reverse proxy:
 
 ```bash
 # Устанавливаем Nginx
@@ -429,19 +412,21 @@ server {
     listen 80;
     server_name your_domain.com;  # или IP сервера
 
-    # Веб-панель
-    root /opt/discord-bot/dist;
-    index index.html;
-
+    # Flask API + статические файлы (React SPA)
     location / {
-        try_files $uri $uri/ /index.html;
-    }
-
-    # API бота (если добавите Flask API)
-    location /api/ {
         proxy_pass http://127.0.0.1:5000;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # WebSocket для Discord (если нужно)
+    location /ws {
+        proxy_pass http://127.0.0.1:5000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
     }
 }
 ```

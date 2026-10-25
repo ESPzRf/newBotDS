@@ -1,4 +1,6 @@
+import { useState, useEffect } from 'react';
 import { type Page } from '../App';
+import api, { type BotStatus } from '../api/client';
 
 interface SidebarProps {
   currentPage: Page;
@@ -17,6 +19,23 @@ const menuItems: { id: Page; label: string; icon: string }[] = [
 ];
 
 export default function Sidebar({ currentPage, setCurrentPage, isOpen, setIsOpen }: SidebarProps) {
+  const [botStatus, setBotStatus] = useState<BotStatus | null>(null);
+
+  useEffect(() => {
+    checkStatus();
+    const interval = setInterval(checkStatus, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const checkStatus = async () => {
+    try {
+      const status = await api.getStatus();
+      setBotStatus(status);
+    } catch {
+      setBotStatus({ online: false });
+    }
+  };
+
   return (
     <aside className={`fixed left-0 top-0 h-full bg-bg-secondary border-r border-white/10 transition-all duration-300 z-50 ${isOpen ? 'w-64' : 'w-16'}`}>
       <div className="flex items-center justify-between p-4 border-b border-white/10">
@@ -57,10 +76,25 @@ export default function Sidebar({ currentPage, setCurrentPage, isOpen, setIsOpen
         {isOpen && (
           <div className="bg-bg-card rounded-lg p-3 border border-white/5">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-2 h-2 bg-success rounded-full animate-pulse"></div>
-              <span className="text-xs text-success font-medium">Бот онлайн</span>
+              <div className={`w-2 h-2 rounded-full ${
+                botStatus?.online ? 'bg-success animate-pulse' : 'bg-danger'
+              }`} />
+              <span className={`text-xs font-medium ${
+                botStatus?.online ? 'text-success' : 'text-danger'
+              }`}>
+                {botStatus?.online ? 'Бот онлайн' : 'Бот оффлайн'}
+              </span>
             </div>
-            <p className="text-xs text-text-secondary">Серверов: 3 • Участников: 1,247</p>
+            {botStatus?.online ? (
+              <>
+                <p className="text-xs text-text-secondary truncate">{botStatus.user}</p>
+                <p className="text-xs text-text-secondary mt-1">
+                  Серверов: {botStatus.guilds} • {botStatus.latency}мс
+                </p>
+              </>
+            ) : (
+              <p className="text-xs text-text-secondary">Запустите: <code className="text-discord-light">python main.py</code></p>
+            )}
           </div>
         )}
       </div>

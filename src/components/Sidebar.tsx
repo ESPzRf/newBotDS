@@ -13,6 +13,7 @@ const menuItems: { id: Page; label: string; icon: string }[] = [
   { id: 'logs', label: 'Логи', icon: '📋' },
   { id: 'settings', label: 'Настройки', icon: '⚙️' },
   { id: 'botcode', label: 'Код бота', icon: '🐍' },
+  { id: 'install', label: 'Установка', icon: '🐧' },
 ];
 
 export default function Sidebar({ currentPage, setCurrentPage, isOpen, setIsOpen }: SidebarProps) {

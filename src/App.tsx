@@ -5,8 +5,9 @@ import Moderation from './pages/Moderation';
 import Logs from './pages/Logs';
 import Settings from './pages/Settings';
 import BotCode from './pages/BotCode';
+import InstallGuide from './pages/InstallGuide';
 
-export type Page = 'dashboard' | 'moderation' | 'logs' | 'settings' | 'botcode';
+export type Page = 'dashboard' | 'moderation' | 'logs' | 'settings' | 'botcode' | 'install';
 
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
@@ -19,6 +20,7 @@ function App() {
       case 'logs': return <Logs />;
       case 'settings': return <Settings />;
       case 'botcode': return <BotCode />;
+      case 'install': return <InstallGuide />;
       default: return <Dashboard />;
     }
   };

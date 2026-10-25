@@ -1,0 +1,18 @@
+# requirements.txt
+# Зависимости проекта Discord Moderation Bot
+
+# Discord API
+discord.py>=2.3.0
+
+# Веб-сервер (Flask API)
+flask>=3.0.0
+flask-cors>=4.0.0
+
+# Переменные окружения
+python-dotenv>=1.0.0
+
+# HTTP клиент (для webhook и внешних запросов)
+aiohttp>=3.9.0
+
+# Логирование
+colorlog>=6.8.0

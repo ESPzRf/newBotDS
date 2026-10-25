@@ -1,0 +1,13 @@
+# requirements.txt
+# Зависимости проекта
+
+discord.py>=2.3.0
+python-dotenv>=1.0.0
+aiohttp>=3.9.0
+
+# Для веб-интерфейса (Flask API)
+flask>=3.0.0
+flask-cors>=4.0.0
+
+# Логирование
+colorlog>=6.8.0
